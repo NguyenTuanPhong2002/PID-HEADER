@@ -1,0 +1,5 @@
+Removed Pin From Net: NetName=GND Pin=LCD-7
+Removed Pin From Net: NetName=GND Pin=LCD-8
+Removed Pin From Net: NetName=GND Pin=LCD-9
+Removed Pin From Net: NetName=GND Pin=LCD-10
+Change Component Designator: OldDesignator=POWER-AC NewDesignator=POWER

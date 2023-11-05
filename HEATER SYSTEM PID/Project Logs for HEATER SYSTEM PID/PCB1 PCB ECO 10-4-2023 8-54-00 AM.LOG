@@ -1,0 +1,12 @@
+Removed Pin From Net: NetName=+5_ISO Pin=U2-4
+Added Component: Designator=R16(RES-SMD-1206)
+Add component (AddParameter): Name = "Class"; Value = "Passive"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "Generic Components"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Published"; Value = "08/06/2000"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Publisher"; Value = "Altium Hobart Technology Centre"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=VCC Pin=R16-2
+Added Pin To Net: NetName=NetR16_1 Pin=R16-1
+Added Pin To Net: NetName=NetR16_1 Pin=U2-4
+Added Net: Name=NetR16_1
+Added Member To Class: ClassName=Sheet1 Member=Component R16 5K
+Added Room: Name=Sheet1
