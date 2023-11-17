@@ -8,7 +8,7 @@
 #include "pid.h"
 
 // Khởi tạo bộ điều khiển PID
-void PID_Init(PIDController *pid, double kp, double ki, double kd, double setpoint)
+void    PID_Init(PIDController *pid, double kp, double ki, double kd, double setpoint)
 {
     pid->Kp = kp;
     pid->Ki = ki;
@@ -28,7 +28,7 @@ double PID_Update(PIDController *pid, double process_variable)
     pid->integral += error;
 
     // Tính đạo hàm của sai số
-    double derivative = error - pid->prev_error;
+    double derivative = error - pid->prev_error;    
 
     // Tính tín hiệu điều khiển
     double control_signal = pid->Kp * error + pid->Ki * pid->integral + pid->Kd * derivative;

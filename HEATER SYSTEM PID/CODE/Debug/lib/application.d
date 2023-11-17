@@ -1,6 +1,5 @@
-Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.o: \
- ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c \
- ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
+lib/application.o: ../lib/application.c ../lib/application.h \
+ ../Core/Inc/main.h ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Core/Inc/stm32f1xx_hal_conf.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h \
@@ -28,7 +27,10 @@ Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.o: \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
- ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+ ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
+ ../lib/CLCD_I2C.h ../lib/pid.h ../lib/max6675.h
+../lib/application.h:
+../Core/Inc/main.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 ../Core/Inc/stm32f1xx_hal_conf.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h:
@@ -58,3 +60,6 @@ Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.o: \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
+../lib/CLCD_I2C.h:
+../lib/pid.h:
+../lib/max6675.h:

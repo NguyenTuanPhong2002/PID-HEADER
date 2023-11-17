@@ -11,12 +11,16 @@
 
 #include "main.h"
 
-#include "stdint.h"
+#include "stm32f1xx_hal.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
 
-// ------------------------- Defines -------------------------
-#define SSPORT GPIOB     // GPIO Port of Chip Select(Slave Select)
-#define SSPIN GPIO_PIN_12 // GPIO PIN of Chip Select(Slave Select)
-// ------------------------- Functions  ----------------------
-double Max6675_Read_Temp(void);
+#include "stdbool.h"
+#include "stdlib.h"
+
+void MAX6675_Init();
+
+uint32_t getTem(void);
 
 #endif /* MAX6675_H_ */

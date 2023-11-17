@@ -1,0 +1,7 @@
+../lib/application.c:21:6:initApp	16	static
+../lib/application.c:30:6:mainMenu	8	static
+../lib/application.c:42:6:updateSetpoint	24	static
+../lib/application.c:50:6:updateRealValue	24	static
+../lib/application.c:58:6:updateStatus	16	static
+../lib/application.c:67:6:initTime	8	static
+../lib/application.c:75:6:updateTime	24	static

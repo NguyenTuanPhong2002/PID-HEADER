@@ -86,6 +86,6 @@ void updateTime(void)
     sprintf(buffer, "%02d:", HTime.Minutes);
     CLCD_I2C_WriteString(&LCD1, buffer);
     CLCD_I2C_SetCursor(&LCD1, 18, 2);
-    sprintf(buffer, "%02d:", HTime.Seconds);
+    sprintf(buffer, "%02d", HTime.Seconds);
     CLCD_I2C_WriteString(&LCD1, buffer);
 }

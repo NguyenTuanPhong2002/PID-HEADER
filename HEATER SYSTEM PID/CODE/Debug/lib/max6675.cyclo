@@ -1,1 +1,2 @@
-../lib/max6675.c:22:8:Max6675_Read_Temp	1
+../lib/max6675.c:17:6:MAX6675_Init	1
+../lib/max6675.c:30:10:getTem	2
