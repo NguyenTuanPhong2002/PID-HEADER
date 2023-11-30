@@ -113,6 +113,28 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 		timestap = HAL_GetTick();
 	}
 }
+
+uint8_t pwmtime;
+void pwm_output(int pwm) {
+	if (pwm <= 0) {
+		HAL_GPIO_WritePin(PWM_GPIO_Port, PWM_Pin, 1);
+		HAL_Delay(250);
+		return;
+	} else if (pwm > 150) {
+		HAL_GPIO_WritePin(PWM_GPIO_Port, PWM_Pin, 0);
+		HAL_Delay(250);
+		return;
+	} else {
+		pwmtime = 150 - pwm;
+		for (int i = 0; i < (200 / pwmtime) + 1; i++) {
+			HAL_GPIO_WritePin(PWM_GPIO_Port, PWM_Pin, 0);
+			HAL_Delay(pwmtime);
+			HAL_GPIO_WritePin(PWM_GPIO_Port, PWM_Pin, 1);
+			HAL_Delay(pwmtime);
+		}
+	}
+
+}
 /* USER CODE END 0 */
 
 /**
@@ -149,10 +171,11 @@ int main(void) {
 	MX_TIM2_Init();
 	MX_TIM1_Init();
 	/* USER CODE BEGIN 2 */
+
+	HAL_GPIO_WritePin(PWM_GPIO_Port, PWM_Pin, 1);
+
 	initApp();
 	MAX6675_Init();
-
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
 
 	mainMenu();
 	initTime();
@@ -171,21 +194,26 @@ int main(void) {
 
 		/* USER CODE BEGIN 3 */
 		HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
-		updateSetpoint(encoderCount);
-		updateStatus(status);
-
-		/* Functions */
-		realValue = getTem();
-
-		updateRealValue(realValue);
 
 		if (status == 1) {
+			updateSetpoint(encoderCount);
+			updateStatus(status);
+
+			/* Functions */
+			realValue = getTem();
+			updateRealValue(realValue);
 			control_signal = PID_Update(&pid, realValue);
-			__HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, (70));
-			HAL_Delay(200);
+			pwm_output(control_signal);
 			updateTime();
 		} else {
-			HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_2);
+			pwm_output(-1);
+			updateSetpoint(encoderCount);
+			updateStatus(status);
+
+			/* Functions */
+			realValue = getTem();
+			updateRealValue(realValue);
+			HAL_Delay(200);
 		}
 	}
 	/* USER CODE END 3 */
@@ -432,7 +460,6 @@ static void MX_TIM2_Init(void) {
 
 	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
 	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-	TIM_OC_InitTypeDef sConfigOC = { 0 };
 
 	/* USER CODE BEGIN TIM2_Init 1 */
 
@@ -450,27 +477,15 @@ static void MX_TIM2_Init(void) {
 	if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_TIM_PWM_Init(&htim2) != HAL_OK) {
-		Error_Handler();
-	}
 	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
 	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
 	if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig)
 			!= HAL_OK) {
 		Error_Handler();
 	}
-	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = 0;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_2)
-			!= HAL_OK) {
-		Error_Handler();
-	}
 	/* USER CODE BEGIN TIM2_Init 2 */
 
 	/* USER CODE END TIM2_Init 2 */
-	HAL_TIM_MspPostInit(&htim2);
 
 }
 
@@ -522,13 +537,14 @@ static void MX_GPIO_Init(void) {
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOA, LD1_Pin | LD2_Pin | LD3_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, PWM_Pin | LD1_Pin | LD2_Pin | LD3_Pin,
+			GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(GPIOB, CS_Pin | LED_LCD_Pin, GPIO_PIN_RESET);
 
-	/*Configure GPIO pins : LD1_Pin LD2_Pin LD3_Pin */
-	GPIO_InitStruct.Pin = LD1_Pin | LD2_Pin | LD3_Pin;
+	/*Configure GPIO pins : PWM_Pin LD1_Pin LD2_Pin LD3_Pin */
+	GPIO_InitStruct.Pin = PWM_Pin | LD1_Pin | LD2_Pin | LD3_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

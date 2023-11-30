@@ -59,6 +59,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define PWM_Pin GPIO_PIN_1
+#define PWM_GPIO_Port GPIOA
 #define LD1_Pin GPIO_PIN_4
 #define LD1_GPIO_Port GPIOA
 #define LD2_Pin GPIO_PIN_5
