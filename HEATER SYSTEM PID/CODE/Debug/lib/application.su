@@ -1,7 +1,9 @@
 ../lib/application.c:21:6:initApp	16	static
-../lib/application.c:30:6:mainMenu	8	static
-../lib/application.c:42:6:updateSetpoint	24	static
-../lib/application.c:50:6:updateRealValue	24	static
-../lib/application.c:58:6:updateStatus	16	static
-../lib/application.c:67:6:initTime	8	static
-../lib/application.c:75:6:updateTime	24	static
+../lib/application.c:29:6:mainMenu	8	static
+../lib/application.c:41:6:mainPower	8	static
+../lib/application.c:53:6:updateSetpoint	24	static
+../lib/application.c:60:6:updateRealValue	24	static
+../lib/application.c:67:6:updatePowerpoint	24	static
+../lib/application.c:74:6:updateStatus	16	static
+../lib/application.c:82:6:initTime	8	static
+../lib/application.c:90:6:updateTime	24	static

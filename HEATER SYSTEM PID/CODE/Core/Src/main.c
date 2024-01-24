@@ -46,7 +46,6 @@ RTC_HandleTypeDef hrtc;
 
 SPI_HandleTypeDef hspi2;
 
-TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart1;
@@ -57,11 +56,13 @@ CLCD_I2C_Name LCD1;
 PIDController pid;
 
 uint32_t encoderCount = 60;
+float powerpoint = 1.0f;
 uint32_t realValue = 0;
 uint8_t dir = 0;
 uint64_t timestap = 0;
 uint64_t sw_timestap = 0;
 uint8_t status = 0;
+uint8_t clsmoniter = 0;
 double control_signal = 0;
 /* USER CODE END PV */
 
@@ -73,7 +74,6 @@ static void MX_USART1_UART_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_RTC_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -84,55 +84,97 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == GPIO_PIN_2 && (HAL_GetTick() - sw_timestap) > 1000) {
 		if (status == 0) {
 			status = 1;
+			//clsmoniter = 1;
 			initTime();
 			PID_Init(&pid, 1.0, 0.1, 0.01, encoderCount);
-		} else {
+		} else if (status == 1) {
+			initTime();
+			status = 2;
+			clsmoniter = 1;
+		} else if (status == 2) {
 			status = 0;
+			clsmoniter = 1;
 		}
 		sw_timestap = HAL_GetTick();
 	}
 
-	if ((HAL_GetTick() - timestap) > 100)
-		dir = 0;
-	if (GPIO_Pin == GPIO_PIN_1 && dir == 0
-			|| GPIO_Pin == GPIO_PIN_1 && dir == 1) {
-		encoderCount++;
-		PID_Init(&pid, 1.0, 0.1, 0.01, encoderCount);
-		HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-		dir = 1;
-		timestap = HAL_GetTick();
-	}
-	if (GPIO_Pin == GPIO_PIN_0 && dir == 0
-			|| GPIO_Pin == GPIO_PIN_0 && dir == 2) {
-		if (encoderCount > 0) {
-			encoderCount--;
+	if (status == 0 || status == 1) {
+
+		if ((HAL_GetTick() - timestap) > 100)
+			dir = 0;
+		if (GPIO_Pin == GPIO_PIN_1 && dir == 0
+				|| GPIO_Pin == GPIO_PIN_1 && dir == 1) {
+			encoderCount++;
 			PID_Init(&pid, 1.0, 0.1, 0.01, encoderCount);
+			HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+			dir = 1;
+			timestap = HAL_GetTick();
 		}
-		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-		dir = 2;
-		timestap = HAL_GetTick();
+		if (GPIO_Pin == GPIO_PIN_0 && dir == 0
+				|| GPIO_Pin == GPIO_PIN_0 && dir == 2) {
+			if (encoderCount > 0) {
+				encoderCount--;
+				PID_Init(&pid, 1.0, 0.1, 0.01, encoderCount);
+			}
+			HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+			dir = 2;
+			timestap = HAL_GetTick();
+		}
+	}
+
+	if (status == 2) {
+
+		if ((HAL_GetTick() - timestap) > 100)
+			dir = 0;
+		if (GPIO_Pin == GPIO_PIN_1 && dir == 0
+				|| GPIO_Pin == GPIO_PIN_1 && dir == 1) {
+			powerpoint = powerpoint + 0.05f;
+			//PID_Init(&pid, 1.0, 0.1, 0.01, encoderCount);
+			HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+			dir = 1;
+			timestap = HAL_GetTick();
+		}
+		if (GPIO_Pin == GPIO_PIN_0 && dir == 0
+				|| GPIO_Pin == GPIO_PIN_0 && dir == 2) {
+			if (powerpoint > 0.9f) {
+				powerpoint = powerpoint - 0.05f;
+				//PID_Init(&pid, 1.0, 0.1, 0.01, encoderCount);
+			}
+			HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+			dir = 2;
+			timestap = HAL_GetTick();
+		}
 	}
 }
 
-uint8_t pwmtime;
+int pwmtime;
 void pwm_output(int pwm) {
 	if (pwm <= 0) {
 		HAL_GPIO_WritePin(PWM_GPIO_Port, PWM_Pin, 1);
+		HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, 1);
 		HAL_Delay(250);
-		return;
-	} else if (pwm > 150) {
+	} else if (pwm >= 100) {
 		HAL_GPIO_WritePin(PWM_GPIO_Port, PWM_Pin, 0);
+		HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, 0);
 		HAL_Delay(250);
-		return;
 	} else {
-		pwmtime = 150 - pwm;
-		for (int i = 0; i < (200 / pwmtime) + 1; i++) {
+		pwmtime = 100 - pwm;
+		if (pwmtime == 0) {
+			pwmtime = 1;
+		}
+		for (int i = 0; i < 3; i++) {
 			HAL_GPIO_WritePin(PWM_GPIO_Port, PWM_Pin, 0);
-			HAL_Delay(pwmtime);
+			HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, 0);
+			HAL_Delay(pwm);
 			HAL_GPIO_WritePin(PWM_GPIO_Port, PWM_Pin, 1);
+			HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, 1);
 			HAL_Delay(pwmtime);
 		}
 	}
+
+}
+
+void powerPID() {
 
 }
 /* USER CODE END 0 */
@@ -169,7 +211,6 @@ int main(void) {
 	MX_SPI2_Init();
 	MX_RTC_Init();
 	MX_TIM2_Init();
-	MX_TIM1_Init();
 	/* USER CODE BEGIN 2 */
 
 	HAL_GPIO_WritePin(PWM_GPIO_Port, PWM_Pin, 1);
@@ -182,9 +223,9 @@ int main(void) {
 
 	/* Create the object*/
 
-	// char *message = "Hello, UART!\r\n";
-	// HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message),
-	// 				  HAL_MAX_DELAY);
+// char *message = "Hello, UART!\r\n";
+// HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message),
+// 				  HAL_MAX_DELAY);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -194,6 +235,10 @@ int main(void) {
 
 		/* USER CODE BEGIN 3 */
 		HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
+		if (clsmoniter == 1) {
+			CLCD_I2C_Clear(&LCD1);
+			clsmoniter = 0;
+		}
 
 		if (status == 1) {
 			updateSetpoint(encoderCount);
@@ -203,9 +248,14 @@ int main(void) {
 			realValue = getTem();
 			updateRealValue(realValue);
 			control_signal = PID_Update(&pid, realValue);
-			pwm_output(control_signal);
+			if (realValue > encoderCount) {
+				pwm_output(-1);
+			} else {
+				pwm_output(control_signal);
+			}
 			updateTime();
-		} else {
+		} else if (status == 0) {
+			mainMenu();
 			pwm_output(-1);
 			updateSetpoint(encoderCount);
 			updateStatus(status);
@@ -214,6 +264,13 @@ int main(void) {
 			realValue = getTem();
 			updateRealValue(realValue);
 			HAL_Delay(200);
+		} else if (status == 2) {
+			mainPower();
+			updatePowerpoint(powerpoint);
+			realValue = getTem();
+			updateRealValue(realValue);
+			pwm_output((int) (powerpoint * 5.8f));
+			updateTime();
 		}
 	}
 	/* USER CODE END 3 */
@@ -385,69 +442,6 @@ static void MX_SPI2_Init(void) {
 }
 
 /**
- * @brief TIM1 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM1_Init(void) {
-
-	/* USER CODE BEGIN TIM1_Init 0 */
-
-	/* USER CODE END TIM1_Init 0 */
-
-	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-	TIM_OC_InitTypeDef sConfigOC = { 0 };
-	TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = { 0 };
-
-	/* USER CODE BEGIN TIM1_Init 1 */
-
-	/* USER CODE END TIM1_Init 1 */
-	htim1.Instance = TIM1;
-	htim1.Init.Prescaler = 0;
-	htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim1.Init.Period = 65535;
-	htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim1.Init.RepetitionCounter = 0;
-	htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_PWM_Init(&htim1) != HAL_OK) {
-		Error_Handler();
-	}
-	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = 0;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-	sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
-	sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
-	sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-	sBreakDeadTimeConfig.DeadTime = 0;
-	sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
-	sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
-	sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
-	if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN TIM1_Init 2 */
-
-	/* USER CODE END TIM1_Init 2 */
-	HAL_TIM_MspPostInit(&htim1);
-
-}
-
-/**
  * @brief TIM2 Initialization Function
  * @param None
  * @retval None
@@ -537,14 +531,15 @@ static void MX_GPIO_Init(void) {
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOA, PWM_Pin | LD1_Pin | LD2_Pin | LD3_Pin,
+	HAL_GPIO_WritePin(GPIOA, PWM_Pin | LD1_Pin | LD2_Pin | LD3_Pin | LD4_Pin,
 			GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(GPIOB, CS_Pin | LED_LCD_Pin, GPIO_PIN_RESET);
 
-	/*Configure GPIO pins : PWM_Pin LD1_Pin LD2_Pin LD3_Pin */
-	GPIO_InitStruct.Pin = PWM_Pin | LD1_Pin | LD2_Pin | LD3_Pin;
+	/*Configure GPIO pins : PWM_Pin LD1_Pin LD2_Pin LD3_Pin
+	 LD4_Pin */
+	GPIO_InitStruct.Pin = PWM_Pin | LD1_Pin | LD2_Pin | LD3_Pin | LD4_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

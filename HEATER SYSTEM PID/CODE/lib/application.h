@@ -18,9 +18,11 @@
 
 void initApp(void);
 void mainMenu(void);
+void mainPower(void);
 
 void updateSetpoint(uint16_t temp);
 void updateRealValue(uint16_t temp);
+void updatePowerpoint(float temp);
 void updateStatus(uint8_t status);
 void updateTime(void);
 
